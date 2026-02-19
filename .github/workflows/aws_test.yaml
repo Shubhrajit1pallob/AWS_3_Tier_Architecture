@@ -1,0 +1,23 @@
+name: Test AWS Connection
+on: [push]
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_ROLE_TO_ASSUME: arn:aws:iam::180250354191:role/GitHubActions-DevOps-Project
+  AWS_REGION: us-east-1
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Verify
+        run: aws sts get-caller-identity
