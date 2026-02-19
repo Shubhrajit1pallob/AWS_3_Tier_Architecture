@@ -73,15 +73,14 @@ graph TD
 ## 📂 Project Structure
 
 ```plaintext
-├── .github/workflows/           # GitHub Actions CI/CD pipelines
-├── DevOps Project-01
-|   ├── terraform/               # Infrastructure as Code
-│   │   ├── modules/             # Reusable VPC, ASG, and RDS modules
-│   │   ├── main.tf              # Infrastructure entry point
-│   │   ├── variables.tf         # Parameterized configuration
-│   │   └── backend.tf           # S3 & DynamoDB state configuration
-│   ├── Java-Login-App/          # Java Application source code
-│   └── pom.xml                  # Maven build & GitHub Packages config
+├── .github/workflows/       # GitHub Actions CI/CD pipelines
+├── terraform/               # Infrastructure as Code
+│   ├── modules/             # Reusable VPC, ASG, and RDS modules
+│   ├── main.tf              # Infrastructure entry point
+│   ├── variables.tf         # Parameterized configuration
+│   └── backend.tf           # S3 & DynamoDB state configuration
+├── Java-Login-App/          # Java Application source code
+│   └── pom.xml              # Maven build & GitHub Packages config
 ├── Readme.md
 └── .gitignore
 ```
