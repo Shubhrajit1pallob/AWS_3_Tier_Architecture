@@ -12,7 +12,7 @@ permissions:
   contents: read
 
 env:
-    AWS_ROLE_TO_ASSUME: arn:aws:iam::180250354191:role/GitHubActions-DevOps-Project
+    AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_ARN }}
     AWS_REGION: us-east-1
 
 jobs:
@@ -32,6 +32,10 @@ jobs:
               uses: hashicorp/setup-terraform@v2
               with:
                 terraform_wrapper: false
+
+            - name: Initialize Terraform
+              run: terraform init
+              working-directory: ./Terraform
 
             - name: Format Terraform Code
               run: terraform fmt -check
