@@ -2,10 +2,10 @@ name: Infrastructure Deployment
 on: 
   push:
     branches:
-      - main
+      - Terraform
   pull_request:
     branches:
-      - main
+      - Terraform
 
 permissions:
   id-token: write
@@ -16,32 +16,77 @@ env:
     AWS_REGION: us-east-1
 
 jobs:
-    deploy-infra:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout Repository
-              uses: actions/checkout@v3
 
-            - name: Configure AWS Credentials
-              uses: aws-actions/configure-aws-credentials@v4
-              with:
-                  role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
-                  aws-region: ${{ env.AWS_REGION }}
+  sast-security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
-            - name: Set up Terraform
-              uses: hashicorp/setup-terraform@v2
-              with:
-                terraform_wrapper: false
+      - name: Run SAST Security Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
 
-            - name: Initialize Terraform
-              run: terraform init
-              working-directory: ./Terraform
+      - name: Upload SAST Scan Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: trivy-results
+          path: trivy-results.sarif
+      
+      - name: Set Up Python for Checkov
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - name: Checkovv scan
+        id: checkov-scan
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: './Terraform'
+          framework: 'terraform'
+          output_format: 'sarif'
+          output_file_path: 'checkov-results.sarif'
 
-            - name: Format Terraform Code
-              run: terraform fmt -check
-              working-directory: ./Terraform
-            
-            - name: Validate Terraform Code
-              run: terraform validate
-              working-directory: ./Terraform
+      - name: Upload Checkov Scan Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: checkov-results
+          path: checkov-results.sarif
+
+
+  validate-infrastructure-code:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+            role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
+            aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_wrapper: false
+
+      - name: Initialize Terraform
+        run: terraform init
+        working-directory: ./Terraform
+
+      - name: Plan Terraform Deployment
+        run: terraform plan -out=tfplan
+        working-directory: ./Terraform
+
+      - name: Format Terraform Code
+        run: terraform fmt -check
+        working-directory: ./Terraform
+      
+      - name: Validate Terraform Code
+        run: terraform validate
+        working-directory: ./Terraform
                 
