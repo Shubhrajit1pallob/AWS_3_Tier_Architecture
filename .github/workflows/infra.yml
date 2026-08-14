@@ -58,6 +58,7 @@ jobs:
 
 
   validate-infrastructure-code:
+    needs: sast-security-scan
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -78,12 +79,12 @@ jobs:
         run: terraform init
         working-directory: ./Terraform
 
-      - name: Plan Terraform Deployment
-        run: terraform plan -out=tfplan
-        working-directory: ./Terraform
-
       - name: Format Terraform Code
         run: terraform fmt -check
+        working-directory: ./Terraform
+
+      - name: Plan Terraform Deployment
+        run: terraform plan -out=tfplan
         working-directory: ./Terraform
       
       - name: Validate Terraform Code
